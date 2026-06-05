@@ -1,34 +1,41 @@
 name: Machine Learning Workflow CI
 
-# Jalankan otomatisasi ini setiap kali ada file baru yang di-push ke branch main
 on:
   push:
     branches: [ main ]
 
 jobs:
-  re-train-model:
+  retrain-and-upload:
     runs-on: ubuntu-latest
+    
     steps:
-    - name: Checkout Code
+    # 1. Set up job & Run actions/checkout@v3
+    - name: Run actions/checkout@v3
       uses: actions/checkout@v3
 
-    - name: Set up Python
+    # 2. Set up Python 3.12.7
+    - name: Set up Python 3.12.7
       uses: actions/setup-python@v4
       with:
         python-version: '3.12.7'
 
-    - name: Install Dependencies
+    # 3. Check Env & Install dependencies
+    - name: Check Env & Install dependencies
       run: |
+        python --version
         pip install mlflow==2.19.0 scikit-learn pandas
 
-    - name: Run MLflow Project
+    # 4. Set MLflow Tracking URI & Run mlflow project
+    # (Menggunakan folder mlruns lokal di dalam repositori sebagai URI)
+    - name: Set MLflow Tracking URI & Run mlflow project
       run: |
         cd MLProject
+        export MLFLOW_TRACKING_URI=./mlruns
         mlflow run . --no-conda
 
-    # Langkah tambahan untuk poin SKILLED (Menyimpan hasil training ke GitHub)
-    - name: Upload Artifacts
+    # 5. Upload to GitHub (Alternatif resmi dari 'Upload to Google Drive' sesuai petunjuk gambar)
+    - name: Upload to GitHub Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: model-retrained-results
+        name: mlflow-retrained-artifacts
         path: MLProject/mlruns/
